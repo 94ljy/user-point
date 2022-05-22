@@ -4,7 +4,7 @@ import { PointEvent } from '../domain/point.event.entity'
 import { PointRedeemEvent } from '../domain/point.redeem.event.entity'
 import { PointEventType } from '../domain/type/point.event.type'
 import { PointEventRepository } from '../repository/point.event.repository'
-import { UserEarnPoint } from './user.point'
+import { UserEarnPoint } from './user.earn.point'
 
 @Injectable()
 export class PointService {

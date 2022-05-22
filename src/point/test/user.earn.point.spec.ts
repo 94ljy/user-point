@@ -1,7 +1,7 @@
 import { PointEvent } from '../domain/point.event.entity'
 import { PointRedeemEvent } from '../domain/point.redeem.event.entity'
 import { PointEventType } from '../domain/type/point.event.type'
-import { UserEarnPoint } from '../service/user.point'
+import { UserEarnPoint } from '../service/user.earn.point'
 
 describe('UserPoint', () => {
     const userId = 'test-user'
