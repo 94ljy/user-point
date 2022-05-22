@@ -77,6 +77,10 @@ export class PointEvent {
     }
 
     redeem(amount: number) {
+        if (this.availableAmount() < amount) {
+            throw new Error('Not enough point')
+        }
+
         const pointRedeemEvent = PointRedeemEvent.createRedeemEvent(
             this.userId,
             amount,
