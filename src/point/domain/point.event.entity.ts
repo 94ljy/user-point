@@ -1,3 +1,4 @@
+import { isAfter, isBefore } from 'date-fns'
 import {
     Column,
     CreateDateColumn,
@@ -94,21 +95,29 @@ export class PointEvent {
         return pointRedeemEvent
     }
 
-    isAvailable() {
+    isAvailable(): boolean {
+        if (this.expiredAt && isAfter(new Date(), this.expiredAt)) {
+            return false
+        }
         return this.availableAmount() > 0
     }
 
-    availableAmount() {
+    availableAmount(): number {
         return this.amount + this.usedAmountSum()
     }
 
-    usedAmountSum() {
+    usedAmountSum(): number {
         return (
             this.usedPointRedeemEvents?.reduce(
                 (acc, cur) => acc + cur.amount,
                 0
             ) ?? 0
         )
+    }
+
+    getExpiredTime(): number {
+        if (this.expiredAt) return this.expiredAt.getTime()
+        else return Number.MAX_VALUE
     }
 }
 

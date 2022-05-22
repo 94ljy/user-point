@@ -25,7 +25,7 @@ export class UserEarnPoint {
         let remainingAmount = amount
         const result: PointRedeemEvent[] = []
 
-        for (const avaialablePointEvent of this.availablePointEvents()) {
+        for (const avaialablePointEvent of this.sortedAvailablePointEvents()) {
             if (remainingAmount <= 0) {
                 break
             }
@@ -58,6 +58,12 @@ export class UserEarnPoint {
             (acc, cur) => acc + cur.availableAmount(),
             0
         )
+    }
+
+    sortedAvailablePointEvents() {
+        return this.availablePointEvents()
+            .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+            .sort((a, b) => a.getExpiredTime() - b.getExpiredTime())
     }
 
     availablePointEvents() {
