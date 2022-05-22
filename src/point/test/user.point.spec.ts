@@ -38,30 +38,10 @@ describe('UserPoint', () => {
     })
 
     it('redeem', async () => {
-        const newPointEvent = userPoint.redeem(2000)
+        const availableAmount = userPoint.availableAmount()
 
-        expect(newPointEvent).toEqual({
-            amount: -2000,
-            type: PointEventType.REDEEM,
-            expiredAt: null,
-            userId,
-            pointRedeemEvents: [
-                {
-                    amount: -900,
-                    usedPointEvent: pointEvents[0],
-                    userId,
-                },
-                {
-                    amount: -500,
-                    usedPointEvent: pointEvents[1],
-                    userId,
-                },
-                {
-                    amount: -600,
-                    usedPointEvent: pointEvents[2],
-                    userId,
-                },
-            ],
-        })
+        userPoint.redeem(availableAmount / 2)
+
+        expect(userPoint.availableAmount()).toBe(availableAmount / 2)
     })
 })

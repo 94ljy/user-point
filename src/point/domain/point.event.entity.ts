@@ -83,7 +83,9 @@ export class PointEvent {
             this
         )
 
-        this.pointRedeemEvents = [pointRedeemEvent]
+        if (!this.usedPointRedeemEvents)
+            this.usedPointRedeemEvents = [pointRedeemEvent]
+        else this.usedPointRedeemEvents.push(pointRedeemEvent)
 
         return pointRedeemEvent
     }
