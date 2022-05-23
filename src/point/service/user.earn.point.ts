@@ -42,8 +42,10 @@ export class UserEarnPoint {
             remainingAmount -= usedAmount
         }
 
-        if (remainingAmount > 0) {
-            throw new Error('Not enough point')
+        if (remainingAmount != 0) {
+            throw new Error(
+                `invalid amount: ${amount} remaining: ${remainingAmount}`
+            )
         }
 
         return result
