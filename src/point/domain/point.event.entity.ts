@@ -27,7 +27,7 @@ export class PointEvent {
     @Column({ name: 'amount' })
     amount: number
 
-    @Column({ type: 'date', name: 'expried_at', nullable: true })
+    @Column({ type: 'datetime', name: 'expried_at', nullable: true })
     expiredAt: Date | null = null
 
     @Column({ name: 'user_id' })
