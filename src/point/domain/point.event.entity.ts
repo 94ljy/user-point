@@ -77,7 +77,11 @@ export class PointEvent {
         return pointEvent
     }
 
-    redeem(amount: number) {
+    redeem(amount: number): PointRedeemEvent {
+        if (this.type !== PointEventType.EARN) {
+            throw new Error('PointEvent is not earn event')
+        }
+
         if (this.availableAmount() < amount) {
             throw new Error('Not enough point')
         }
