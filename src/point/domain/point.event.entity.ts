@@ -3,6 +3,8 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    Index,
+    JoinColumn,
     OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
@@ -87,11 +89,15 @@ export class PointEvent extends BaseEntity {
             this
         )
 
+        this.addUsedPointRedeemEvent(pointRedeemEvent)
+
+        return pointRedeemEvent
+    }
+
+    addUsedPointRedeemEvent(pointRedeemEvent: PointRedeemEvent) {
         if (!this.usedPointRedeemEvents)
             this.usedPointRedeemEvents = [pointRedeemEvent]
         else this.usedPointRedeemEvents.push(pointRedeemEvent)
-
-        return pointRedeemEvent
     }
 
     isAvailable(): boolean {
