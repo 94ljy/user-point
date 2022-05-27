@@ -2,44 +2,42 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm'
+import { BaseEntity } from './base.entity'
 import { PointEvent } from './point.event.entity'
 import { PointEventType } from './type/point.event.type'
 
 @Entity({ name: 'point_redeem_event' })
-export class PointRedeemEvent {
+export class PointRedeemEvent extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number
-
-    @CreateDateColumn({ name: 'created_at' })
-    createAt: Date
-
-    @UpdateDateColumn({ name: 'updated_at' })
-    updateAt: Date
 
     @Column({ name: 'amount' })
     amount: number
 
-    @Column()
+    @Column({ name: 'user_id' })
     userId: string
 
     // @Column({ name: 'used_point_event_id' })
     // usedPointEventId: number
 
     @ManyToOne(() => PointEvent, (pointEvent) => pointEvent.pointRedeemEvents)
+    @JoinColumn({ name: 'used_point_event_id' })
     usedPointEvent: PointEvent
 
     // @Column({ name: 'point_event_id' })
     // pointEventId: number
 
     @ManyToOne(() => PointEvent, (pointEvent) => pointEvent.pointRedeemEvents)
+    @JoinColumn({ name: 'point_event_id' })
     pointEvent: PointEvent
 
     private constructor() {
-        //
+        super()
     }
 
     public static createRedeemEvent(

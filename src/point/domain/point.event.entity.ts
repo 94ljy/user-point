@@ -7,19 +7,14 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm'
+import { BaseEntity } from './base.entity'
 import { PointRedeemEvent } from './point.redeem.event.entity'
 import { PointEventType } from './type/point.event.type'
 
 @Entity({ name: 'point_event' })
-export class PointEvent {
+export class PointEvent extends BaseEntity {
     @PrimaryGeneratedColumn({ name: 'id' })
     id: number
-
-    @CreateDateColumn({ name: 'created_at' })
-    createdAt: Date
-
-    @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt: Date
 
     @Column({ name: 'type' })
     type: PointEventType
@@ -48,7 +43,7 @@ export class PointEvent {
     pointRedeemEvents?: PointRedeemEvent[]
 
     private constructor() {
-        //
+        super()
     }
 
     public static createRedeemEvent(userId: string, amount: number) {
