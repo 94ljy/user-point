@@ -1,12 +1,10 @@
 import { Module } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { PointEvent } from './domain/point.event.entity'
-import { PointRedeemEvent } from './domain/point.redeem.event.entity'
-import { PointEventRepository } from './repository/point.event.repository'
+import { PointRepository } from './repository/point.repository'
 import { PointService } from './service/point.service'
 
 @Module({
-    imports: [TypeOrmModule.forFeature([PointEventRepository])],
+    imports: [TypeOrmModule.forFeature([PointRepository])],
     providers: [PointService],
 })
 export class PointModule {}

@@ -1,112 +1,76 @@
+import { PointRepository } from '../repository/point.repository'
 import { Test, TestingModule } from '@nestjs/testing'
-import { TypeOrmModule } from '@nestjs/typeorm'
-import { find } from 'rxjs'
-import { PointEvent } from '../domain/point.event.entity'
-import { PointRedeemEvent } from '../domain/point.redeem.event.entity'
-import { PointEventType } from '../domain/type/point.event.type'
 import { PointModule } from '../point.module'
-import { PointEventRepository } from '../repository/point.event.repository'
+import { testDatabaseModule } from '../../common/module/test.database'
 import { PointService } from '../service/point.service'
+import { Point } from '../domain/point.entity'
 
-describe('PointService', () => {
-    let module: TestingModule
+describe('point module', () => {
+    let pointRepository: PointRepository
     let pointService: PointService
-    let pointEventRepository: PointEventRepository
-
-    const userId = 'test-user'
+    let module: TestingModule
+    const testUserId = 'test-user-id'
 
     beforeEach(async () => {
         module = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'sqlite',
-                    database: ':memory:',
-                    entities: [PointEvent, PointRedeemEvent],
-                    synchronize: true,
-                    // logging: true,
-                    // keepConnectionAlive: true,
-                }),
-                PointModule,
-            ],
+            imports: [testDatabaseModule, PointModule],
         }).compile()
 
         pointService = module.get(PointService)
-        pointEventRepository = module.get(PointEventRepository)
+        pointRepository = module.get(PointRepository)
     })
 
     afterEach(async () => {
         await module.close()
     })
 
-    it('earn point', async () => {
-        const earnAmount = 10000
+    it('should create point', async () => {
+        const point = await pointService.create(testUserId)
 
-        await expect(
-            pointService.earn(userId, earnAmount, null)
-        ).resolves.not.toThrow()
-
-        const result = await pointService.getUserEarnPoint(userId)
-
-        expect(result.availableAmount()).toBe(earnAmount)
+        expect(point.userId).toBe(testUserId)
+        expect(point.balance).toBe(0)
+        expect(point.totalUsedAmount).toBe(0)
     })
 
-    it('over redeem point', async () => {
-        const earnAmount = 10000
-        await pointService.earn(userId, earnAmount, null)
-
-        await expect(
-            pointService.redeem(userId, earnAmount * 2)
-        ).rejects.toThrow()
-    })
-
-    it('redeem point', async () => {
-        await pointService.earn(userId, 10000, null)
-
-        await expect(pointService.redeem(userId, 10000)).resolves.not.toThrow()
-    })
-
-    it('redeem priority', async () => {
-        const date1 = new Date()
-        date1.setDate(date1.getDate() + 1)
-        const date2 = new Date()
-        date2.setMonth(date2.getMonth() + 1)
-
-        await pointService.earn(userId, 10000, null)
-        await pointService.earn(userId, 5000, date2)
-        await pointService.earn(userId, 2000, date1)
-
-        await pointService.redeem(userId, 10000)
-
-        let pointEvents = await pointEventRepository.find({
-            where: { userId, type: PointEventType.EARN },
-            relations: ['usedPointRedeemEvents'],
+    describe('user point test', () => {
+        beforeEach(async () => {
+            // init user point
+            await pointService.create(testUserId)
         })
 
-        console.log(pointEvents)
+        it('default user balance should be 0', async () => {
+            const point = await pointService.getUserPoint(testUserId)
 
-        expect(pointEvents.length).toBe(3)
+            expect(point.balance).toBe(0)
+        })
 
-        pointEvents = pointEvents.sort(
-            (a, b) => a.getExpiredTime() - b.getExpiredTime()
-        )
+        it('should earn point', async () => {
+            await pointService.earn(testUserId, 1000)
 
-        expect(pointEvents[0].amount).toBe(2000)
-        expect(pointEvents[0].usedAmountSum()).toBe(-2000)
+            const point = await pointService.getUserPoint(testUserId)
 
-        expect(pointEvents[1].amount).toBe(5000)
-        expect(pointEvents[1].usedAmountSum()).toBe(-5000)
+            expect(point.balance).toBe(1000)
+        })
 
-        expect(pointEvents[2].amount).toBe(10000)
-        expect(pointEvents[2].usedAmountSum()).toBe(-3000)
-    })
+        it('should redeem point', async () => {
+            await pointService.earn(testUserId, 1000)
+            await pointService.redeem(testUserId, 500)
 
-    it('redeem after amount', async () => {
-        await pointService.earn(userId, 10000, null)
+            const point = await pointService.getUserPoint(testUserId)
 
-        await pointService.redeem(userId, 5000)
+            expect(point.balance).toBe(500)
+        })
 
-        const result = await pointService.getUserEarnPoint(userId)
+        it('should not redeem point if balance is not enough', async () => {
+            await pointService.earn(testUserId, 1000)
 
-        expect(result.availableAmount()).toBe(5000)
+            await expect(
+                pointService.redeem(testUserId, 1500)
+            ).rejects.toThrow()
+
+            const point = await pointService.getUserPoint(testUserId)
+
+            expect(point.balance).toBe(1000)
+        })
     })
 })

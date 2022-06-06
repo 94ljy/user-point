@@ -1,131 +1,55 @@
-import { isAfter, isBefore } from 'date-fns'
-import {
-    Column,
-    CreateDateColumn,
-    Entity,
-    Index,
-    JoinColumn,
-    OneToMany,
-    PrimaryGeneratedColumn,
-    UpdateDateColumn,
-} from 'typeorm'
-import { BaseEntity } from './base.entity'
-import { PointRedeemEvent } from './point.redeem.event.entity'
-import { PointEventType } from './type/point.event.type'
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
+import { BaseTimeEntity } from '../../common/domain/base.time.entity'
+import { Point } from './point.entity'
+
+export enum PointEventType {
+    EARN = 'EARN',
+    REDEEM = 'REDEEM',
+}
 
 @Entity({ name: 'point_event' })
-export class PointEvent extends BaseEntity {
-    @PrimaryGeneratedColumn({ name: 'id' })
+export class PointEvent extends BaseTimeEntity {
+    @PrimaryGeneratedColumn('uuid', { name: 'id' })
     id: number
 
-    @Column({ name: 'type' })
+    @Column({ name: 'type', type: 'varchar' })
     type: PointEventType
 
-    @Column({ name: 'amount' })
+    @Column({ name: 'amount', type: 'integer' })
     amount: number
 
     @Column({ type: 'datetime', name: 'expried_at', nullable: true })
-    expiredAt: Date | null = null
+    expiredAt?: Date
 
-    @Column({ name: 'user_id' })
-    userId: string
-
-    @OneToMany(
-        () => PointRedeemEvent,
-        (pointRedeemEvent) => pointRedeemEvent.usedPointEvent,
-        { cascade: true }
-    )
-    usedPointRedeemEvents?: PointRedeemEvent[]
-
-    @OneToMany(
-        () => PointRedeemEvent,
-        (pointRedeemEvent) => pointRedeemEvent.pointEvent,
-        { cascade: true }
-    )
-    pointRedeemEvents?: PointRedeemEvent[]
+    @ManyToOne(() => Point, (point) => point.pointEvents)
+    point: Point
 
     private constructor() {
         super()
     }
 
-    public static createRedeemEvent(userId: string, amount: number) {
-        const pointEvent = new PointEvent()
-
-        pointEvent.type = PointEventType.REDEEM
-        pointEvent.amount = -amount
-        pointEvent.expiredAt = null
-        pointEvent.userId = userId
-
-        return pointEvent
-    }
-
     public static createEarnEvent(
-        userId: string,
+        point: Point,
         amount: number,
-        expiredAt: Date | null
-    ) {
+        expiredAt?: Date
+    ): PointEvent {
         const pointEvent = new PointEvent()
 
+        pointEvent.point = point
         pointEvent.type = PointEventType.EARN
         pointEvent.amount = amount
         pointEvent.expiredAt = expiredAt
-        pointEvent.userId = userId
 
         return pointEvent
     }
 
-    redeem(amount: number): PointRedeemEvent {
-        if (this.type !== PointEventType.EARN) {
-            throw new Error('PointEvent is not earn event')
-        }
+    public static createRedeemEvent(point: Point, amount: number) {
+        const pointEvent = new PointEvent()
 
-        if (this.availableAmount() < amount) {
-            throw new Error('Not enough point')
-        }
+        pointEvent.point = point
+        pointEvent.type = PointEventType.REDEEM
+        pointEvent.amount = -amount
 
-        const pointRedeemEvent = PointRedeemEvent.createRedeemEvent(
-            this.userId,
-            amount,
-            this
-        )
-
-        this.addUsedPointRedeemEvent(pointRedeemEvent)
-
-        return pointRedeemEvent
-    }
-
-    addUsedPointRedeemEvent(pointRedeemEvent: PointRedeemEvent) {
-        if (!this.usedPointRedeemEvents)
-            this.usedPointRedeemEvents = [pointRedeemEvent]
-        else this.usedPointRedeemEvents.push(pointRedeemEvent)
-    }
-
-    isAvailable(): boolean {
-        if (this.expiredAt && isAfter(new Date(), this.expiredAt)) {
-            return false
-        }
-        return this.availableAmount() > 0
-    }
-
-    availableAmount(): number {
-        return this.amount + this.usedAmountSum()
-    }
-
-    usedAmountSum(): number {
-        return (
-            this.usedPointRedeemEvents?.reduce(
-                (acc, cur) => acc + cur.amount,
-                0
-            ) ?? 0
-        )
-    }
-
-    getExpiredTime(): number {
-        if (this.expiredAt) return this.expiredAt.getTime()
-        else return Number.MAX_VALUE
+        return pointEvent
     }
 }
-
-// 포인트 1000원 적립
-// 포인트 900원 사용>> 포인트 이벤트 조회하여 검증
-// 남은 포인트 100원

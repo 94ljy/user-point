@@ -1,39 +1,41 @@
 import { Injectable } from '@nestjs/common'
-import { Repository } from 'typeorm'
-import { PointEvent } from '../domain/point.event.entity'
-import { PointRedeemEvent } from '../domain/point.redeem.event.entity'
-import { PointEventType } from '../domain/type/point.event.type'
-import { PointEventRepository } from '../repository/point.event.repository'
-import { UserEarnPoint } from './user.earn.point'
+import { Point } from '../domain/point.entity'
+import { PointRepository } from '../repository/point.repository'
 
 @Injectable()
 export class PointService {
-    constructor(private readonly pointEventRepository: PointEventRepository) {}
+    constructor(private readonly pointRepository: PointRepository) {}
 
-    async getUserEarnPoint(userId: string): Promise<UserEarnPoint> {
-        const earnPointEvents = await this.pointEventRepository.find({
-            where: {
-                type: PointEventType.EARN,
-                userId,
-            },
-            relations: ['usedPointRedeemEvents'],
-        })
+    public async create(userId: string): Promise<Point> {
+        const point = Point.create(userId)
 
-        const userEarnPoint = new UserEarnPoint(userId, earnPointEvents)
-
-        return userEarnPoint
+        return this.pointRepository.save(point)
     }
 
-    async earn(userId: string, amount: number, expiredAt: Date | null) {
-        const pointEvent = PointEvent.createEarnEvent(userId, amount, expiredAt)
-        await this.pointEventRepository.save(pointEvent)
+    async earn(
+        userId: string,
+        amount: number,
+        expiredAt?: Date
+    ): Promise<Point> {
+        const point = await this.getUserPoint(userId)
+        point.earn(amount, expiredAt)
+
+        return this.pointRepository.save(point)
     }
 
-    async redeem(userId: string, amount: number) {
-        const userEarnPoint = await this.getUserEarnPoint(userId)
+    async redeem(userId: string, amount: number): Promise<Point> {
+        const point = await this.getUserPoint(userId)
+        point.redeem(amount)
 
-        const newPointEvent = userEarnPoint.redeem(amount)
+        return this.pointRepository.save(point)
+    }
 
-        await this.pointEventRepository.save(newPointEvent)
+    async getUserPoint(userId: string): Promise<Point> {
+        const point = await this.pointRepository.findOne({ where: { userId } })
+
+        if (!point)
+            throw new Error(`user point not found for userId: ${userId}`)
+
+        return point
     }
 }
