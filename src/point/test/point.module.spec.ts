@@ -45,6 +45,8 @@ describe('point module', () => {
         })
 
         it('should earn point', async () => {
+            console.log('start !!!')
+
             await pointService.earn(testUserId, 1000)
 
             const point = await pointService.getUserPoint(testUserId)
@@ -61,6 +63,16 @@ describe('point module', () => {
             expect(point.balance).toBe(500)
         })
 
+        it('should redeem point2', async () => {
+            await pointService.earn(testUserId, 1000)
+            await pointService.redeem(testUserId, 500)
+            await pointService.redeem(testUserId, 300)
+
+            const point = await pointService.getUserPoint(testUserId)
+
+            expect(point.balance).toBe(200)
+        })
+
         it('should not redeem point if balance is not enough', async () => {
             await pointService.earn(testUserId, 1000)
 
@@ -71,6 +83,53 @@ describe('point module', () => {
             const point = await pointService.getUserPoint(testUserId)
 
             expect(point.balance).toBe(1000)
+        })
+    })
+
+    describe('point event test', () => {
+        beforeEach(async () => {
+            // init user point
+            await pointService.create(testUserId)
+        })
+
+        it('earn point', async () => {
+            await pointService.earn(testUserId, 1000)
+
+            const point = await pointService.getUserPoint(testUserId)
+
+            expect(point.pointEvents?.length).toBe(1)
+            expect(point.balance).toBe(1000)
+        })
+
+        it('earn point2', async () => {
+            await pointService.earn(testUserId, 1000)
+            await pointService.earn(testUserId, 1500)
+
+            const point = await pointService.getUserPoint(testUserId)
+
+            expect(point.pointEvents?.length).toBe(2)
+            expect(point.balance).toBe(2500)
+        })
+
+        it('redeem point', async () => {
+            await pointService.earn(testUserId, 1000)
+            await pointService.redeem(testUserId, 500)
+
+            const point = await pointService.getUserPoint(testUserId)
+
+            expect(point.pointEvents?.length).toBe(2)
+            expect(point.balance).toBe(500)
+        })
+
+        it('redeem point2', async () => {
+            await pointService.earn(testUserId, 1000)
+            await pointService.redeem(testUserId, 500)
+            await pointService.redeem(testUserId, 300)
+
+            const point = await pointService.getUserPoint(testUserId)
+
+            expect(point.pointEvents?.length).toBe(3)
+            expect(point.balance).toBe(200)
         })
     })
 })

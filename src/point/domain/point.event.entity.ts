@@ -21,7 +21,9 @@ export class PointEvent extends BaseTimeEntity {
     @Column({ type: 'datetime', name: 'expried_at', nullable: true })
     expiredAt?: Date
 
-    @ManyToOne(() => Point, (point) => point.pointEvents)
+    @ManyToOne(() => Point, (point) => point.pointEvents, {
+        nullable: false,
+    })
     point: Point
 
     private constructor() {

@@ -1,7 +1,14 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
+import {
+    Column,
+    Entity,
+    Index,
+    OneToMany,
+    PrimaryGeneratedColumn,
+} from 'typeorm'
 import { PointEvent } from './point.event.entity'
 
 @Entity({ name: 'point' })
+@Index(['userId'], { unique: true })
 export class Point {
     @PrimaryGeneratedColumn('uuid', { name: 'id' })
     id: number
@@ -16,7 +23,7 @@ export class Point {
     userId: string
 
     @OneToMany(() => PointEvent, (pointEvent) => pointEvent.point, {
-        cascade: ['insert'],
+        cascade: true,
     })
     pointEvents?: PointEvent[]
 
