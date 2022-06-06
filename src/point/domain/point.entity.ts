@@ -24,6 +24,7 @@ export class Point {
 
     @OneToMany(() => PointEvent, (pointEvent) => pointEvent.point, {
         cascade: true,
+        eager: true,
     })
     pointEvents?: PointEvent[]
 
@@ -50,9 +51,13 @@ export class Point {
     public redeem(amount: number) {
         if (!this.canRedeem(amount)) throw new Error('Not enough point')
 
-        const pointEvent = PointEvent.createRedeemEvent(this, amount)
-        this.addPointEvent(pointEvent)
+        this.addPointEvent(PointEvent.createRedeemEvent(this, amount))
         this.balanceDecreased(amount)
+    }
+
+    private getAvaiableEarnPointEvent(): PointEvent[] {
+        if (!this.pointEvents) return []
+        return this.pointEvents.filter((item) => item.canRedeem())
     }
 
     private balanceIncreased(amount: number) {

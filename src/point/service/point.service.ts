@@ -33,7 +33,6 @@ export class PointService {
     async getUserPoint(userId: string): Promise<Point> {
         const point = await this.pointRepository.findOne({
             where: { userId },
-            relations: ['pointEvents'],
         })
 
         if (!point)

@@ -45,8 +45,6 @@ describe('point module', () => {
         })
 
         it('should earn point', async () => {
-            console.log('start !!!')
-
             await pointService.earn(testUserId, 1000)
 
             const point = await pointService.getUserPoint(testUserId)
