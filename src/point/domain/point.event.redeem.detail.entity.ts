@@ -16,9 +16,15 @@ export class PointEventRedeemDetail extends BaseTimeEntity {
     @Column({ type: 'integer' })
     readonly amount: number
 
+    @Column()
+    usedPointEventId: string
+
     @ManyToOne(() => PointEvent, { nullable: false })
     @JoinColumn()
     readonly usedPointEvent: PointEvent
+
+    @Column()
+    pointEventId: string
 
     @ManyToOne(() => PointEvent, { nullable: false })
     @JoinColumn()

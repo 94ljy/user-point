@@ -29,7 +29,6 @@ describe('point module', () => {
 
         expect(point.userId).toBe(testUserId)
         expect(point.balance).toBe(0)
-        expect(point.totalUsedAmount).toBe(0)
     })
 
     describe('user point test', () => {
@@ -109,7 +108,7 @@ describe('point module', () => {
             expect(point.balance).toBe(2500)
         })
 
-        it('redeem point', async () => {
+        it('redeem point case1', async () => {
             await pointService.earn(testUserId, 1000)
             await pointService.redeem(testUserId, 500)
 
@@ -119,7 +118,7 @@ describe('point module', () => {
             expect(point.balance).toBe(500)
         })
 
-        it('redeem point2', async () => {
+        it('redeem point case2', async () => {
             await pointService.earn(testUserId, 1000)
             await pointService.redeem(testUserId, 500)
             await pointService.redeem(testUserId, 300)
@@ -128,6 +127,21 @@ describe('point module', () => {
 
             expect(point.pointEvents?.length).toBe(3)
             expect(point.balance).toBe(200)
+        })
+
+        it('redeem point case3', async () => {
+            await pointService.earn(testUserId, 1000)
+            await pointService.redeem(testUserId, 500)
+
+            const point = await pointService.getUserPoint(testUserId)
+
+            expect(point.pointEvents![1].redeemDetails![0].amount).toBe(-500)
+
+            expect(
+                point.pointEvents![1].redeemDetails![0].usedPointEventId
+            ).toBe(point.pointEvents![0].id)
+
+            console.log(point)
         })
     })
 })

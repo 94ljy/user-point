@@ -16,9 +16,6 @@ export class Point {
     @Column({ name: 'balance', type: 'integer' })
     balance: number
 
-    @Column({ name: 'used_amount', type: 'integer' })
-    totalUsedAmount: number
-
     @Column({ name: 'user_id', unique: true })
     userId: string
 
@@ -30,7 +27,6 @@ export class Point {
 
     private constructor(userId: string) {
         this.balance = 0
-        this.totalUsedAmount = 0
         this.userId = userId
     }
 
@@ -39,20 +35,40 @@ export class Point {
     }
 
     public earn(amount: number, expiredAt?: Date) {
-        const pointEvent = PointEvent.createEarnEvent(this, amount, expiredAt)
-        this.addPointEvent(pointEvent)
+        this.addPointEvent(PointEvent.createEarnEvent(this, amount, expiredAt))
         this.balanceIncreased(amount)
-    }
-
-    public canRedeem(amount: number): boolean {
-        return this.balance >= amount
     }
 
     public redeem(amount: number) {
         if (!this.canRedeem(amount)) throw new Error('Not enough point')
 
-        this.addPointEvent(PointEvent.createRedeemEvent(this, amount))
+        const redeemEvent = PointEvent.createRedeemEvent(this, amount)
+
         this.balanceDecreased(amount)
+        this.addPointEvent(redeemEvent)
+
+        const avaiableEarnPointEvent = this.getAvaiableEarnPointEvent()
+
+        let remainingAmount = amount
+
+        for (const e of avaiableEarnPointEvent) {
+            if (remainingAmount <= 0) break
+
+            const usedAmount = Math.min(e.availableAmount(), remainingAmount)
+            e.redeem(usedAmount, redeemEvent)
+
+            remainingAmount -= usedAmount
+        }
+
+        if (remainingAmount !== 0) {
+            throw new Error(
+                `redeem erro remainingAmount expected 0, but got ${remainingAmount}`
+            )
+        }
+    }
+
+    public canRedeem(amount: number): boolean {
+        return this.balance >= amount
     }
 
     private getAvaiableEarnPointEvent(): PointEvent[] {
@@ -66,7 +82,6 @@ export class Point {
 
     private balanceDecreased(amount: number) {
         this.balance -= amount
-        this.totalUsedAmount += amount
     }
 
     private addPointEvent(pointEvent: PointEvent) {

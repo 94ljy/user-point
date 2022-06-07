@@ -29,6 +29,12 @@ export class PointEvent extends BaseTimeEntity {
     @Column({ name: 'used_amount', type: 'integer' })
     usedAmount: number
 
+    // @Column({ name: 'prev_balance', type: 'integer' })
+    // prevBalance: number
+
+    // @Column({ name: 'post_balance', type: 'integer' })
+    // postBalance: number
+
     @Column({ type: 'datetime', name: 'expried_at', nullable: true })
     expiredAt?: Date
 
@@ -37,14 +43,14 @@ export class PointEvent extends BaseTimeEntity {
         (pointEventRedeemDetail) => pointEventRedeemDetail.usedPointEvent,
         { cascade: true, eager: true }
     )
-    usedPointEventRedeemDetails?: PointEventRedeemDetail[]
+    usedRedeemDetails?: PointEventRedeemDetail[]
 
     @OneToMany(
         () => PointEventRedeemDetail,
         (pointEventRedeemDetail) => pointEventRedeemDetail.pointEvent,
         { cascade: true, eager: true }
     )
-    pointEventRedeemDetails?: PointEventRedeemDetail[]
+    redeemDetails?: PointEventRedeemDetail[]
 
     @ManyToOne(() => Point, (point) => point.pointEvents, {
         nullable: false,
@@ -72,12 +78,13 @@ export class PointEvent extends BaseTimeEntity {
         return pointEvent
     }
 
-    public static createRedeemEvent(point: Point, amount: number) {
+    public static createRedeemEvent(point: Point, amount: number): PointEvent {
         const pointEvent = new PointEvent()
 
         pointEvent.point = point
         pointEvent.type = PointEventType.REDEEM
         pointEvent.amount = -amount
+
         pointEvent.usedAmount = 0
 
         return pointEvent
@@ -96,9 +103,8 @@ export class PointEvent extends BaseTimeEntity {
             this
         )
 
-        if (!this.usedPointEventRedeemDetails)
-            this.usedPointEventRedeemDetails = []
-        this.usedPointEventRedeemDetails.push(pointEventRedeemDetail)
+        if (!this.usedRedeemDetails) this.usedRedeemDetails = []
+        this.usedRedeemDetails.push(pointEventRedeemDetail)
 
         // return pointEventRedeemDetail
     }
