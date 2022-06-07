@@ -17,14 +17,14 @@ export class PointEventRedeemDetail extends BaseTimeEntity {
     readonly amount: number
 
     @Column()
-    usedPointEventId: string
+    readonly usedPointEventId: string
 
     @ManyToOne(() => PointEvent, { nullable: false })
     @JoinColumn()
     readonly usedPointEvent: PointEvent
 
     @Column()
-    pointEventId: string
+    readonly pointEventId: string
 
     @ManyToOne(() => PointEvent, { nullable: false })
     @JoinColumn()
