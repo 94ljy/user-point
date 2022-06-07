@@ -62,7 +62,7 @@ export class Point {
 
         if (remainingAmount !== 0) {
             throw new Error(
-                `redeem erro remainingAmount expected 0, but got ${remainingAmount}`
+                `redeem error remainingAmount expected 0, but got ${remainingAmount}`
             )
         }
     }
