@@ -97,14 +97,9 @@ export class PointEvent extends BaseTimeEntity {
 
         this.increaseUsedAmount(amount)
 
-        const pointEventRedeemDetail = new PointEventRedeemDetail(
-            amount,
-            pointEvent,
-            this
+        this.addUsedRedeemDetails(
+            new PointEventRedeemDetail(amount, pointEvent, this)
         )
-
-        if (!this.usedRedeemDetails) this.usedRedeemDetails = []
-        this.usedRedeemDetails.push(pointEventRedeemDetail)
 
         // return pointEventRedeemDetail
     }
@@ -116,16 +111,22 @@ export class PointEvent extends BaseTimeEntity {
     public availableAmount(): number {
         return this.amount + this.usedAmount
     }
-
-    private increaseUsedAmount(amount: number) {
-        this.usedAmount += -amount
-    }
-
     public thisIsEarnEvent(): boolean {
         return this.type === PointEventType.EARN
     }
 
-    private thisIsRedeemEvent(): boolean {
+    public thisIsRedeemEvent(): boolean {
         return this.type === PointEventType.REDEEM
+    }
+
+    private addUsedRedeemDetails(
+        pointEventRedeemDetail: PointEventRedeemDetail
+    ) {
+        if (!this.usedRedeemDetails) this.usedRedeemDetails = []
+        this.usedRedeemDetails.push(pointEventRedeemDetail)
+    }
+
+    private increaseUsedAmount(amount: number) {
+        this.usedAmount += -amount
     }
 }
